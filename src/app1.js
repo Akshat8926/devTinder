@@ -1,20 +1,28 @@
 const express = require("express")
-
-const app = express()
-app.use("/hello", (req, res) => {
-    res.send("Helloe from the server Akshat")
-})
-app.use("/hello/2", (req, res) => {
-    res.send("Helloe from the server Akshat 2")
-})
-
-app.use("/", (req, res) => {
-    res.send("Helloe from the server")
-})
+const app1 = express();
 
 
+app1.use("/user", [(req, res, next) => {
+    // Route hander 1
+    console.log("Handling the route user 1");
+    // res.send("Response 1")
+    next()
+
+}, (req, res, next) => {
+    // Route handler 2
+    console.log("Handling the route user 2");
+    // res.send("Response 2")
+    next()
+
+}, (req, res, next) => {
+    // Route handler 3
+    console.log("Handling the route user 3");
+    res.send("Response 3")
+    // next()
+}])
 
 
-app.listen(7777, () => {
-    console.log("Hello i am listening to the server with port 7777");
+
+app1.listen(7777, () => {
+    console.log("Server is successfully running");
 })
