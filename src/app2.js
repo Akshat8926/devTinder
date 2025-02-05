@@ -7,7 +7,7 @@ const User = require("./models/user")
 
 app2.use(express.json())
 
-
+// Add data to the database
 app2.post("/signup", async (req, res) => {
 
     console.log(req.body)
@@ -35,6 +35,82 @@ app2.post("/signup", async (req, res) => {
 
 
 })
+
+// Get a single user
+app2.get("/user", async (req, res) => {
+    const userEmail = req.body.emailId
+    try {
+        // This will find all the matching email ID and gives an array
+        // const users = await User.find({ emailId: userEmail })
+
+        // This will find only one record matching with it 
+        const users = await User.findOne({ emailId: userEmail })
+        if (!users) {
+            // It will give NULL values if it is not found 
+            console.log(users)
+            res.status(400).send("User not found")
+        } else {
+            res.send(users)
+        }
+
+    } catch (err) {
+        res.status(400).send("Something went wrong")
+
+    }
+
+})
+
+// Feed API is used to get all the data from the database
+app2.get("/feed", async (req, res) => {
+
+    try {
+        // This is used to find all the documents
+        const users = await User.find({})
+        res.send(users)
+    } catch (err) {
+        res.status(400).send("Something went wrong")
+    }
+
+})
+
+// Delete data from the database
+app2.delete("/user", async (req, res) => {
+    const userId = req.body.userId
+    try {
+
+        const user = await User.findByIdAndDelete(userId)
+        // Below line will also work
+        // const user = await User.findByIdAndDelete({_id:userId})
+        res.send("User deleted Successfully")
+
+    } catch (err) {
+        res.status(400).send("Something went wrong")
+    }
+
+})
+
+// Update data of the user
+
+app2.patch("/user", async (req, res) => {
+    const data = req.body
+    const userId = req.body.userId
+
+    try {
+        await User.findByIdAndUpdate({ _id: userId }, data)
+        res.send("User updated successfully")
+
+    } catch (err) {
+        res.status(400).send("Something went wrong")
+
+    }
+
+
+
+})
+
+
+
+
 connectDB().then(() => {
     console.log("Databaase connection establised");
     app2.listen(7777, () => {
