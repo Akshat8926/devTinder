@@ -91,16 +91,33 @@ app2.delete("/user", async (req, res) => {
 
 // Update data of the user
 
-app2.patch("/user", async (req, res) => {
+app2.patch("/user/:userId", async (req, res) => {
     const data = req.body
-    const userId = req.body.userId
+    // const userId = req.body.userId
+    // here we are fetching the userId from the route itself
+    const userId = req.params?.userId
+
 
     try {
-        await User.findByIdAndUpdate({ _id: userId }, data)
+
+        // Here we have done some API level validation (Data Sanitization)
+
+        const ALLOWED_UPDATES = ["userId", "photoUrl", "about", "gender", "age", "skills"]
+        const isUpdateAllowed = Object.keys(data).every((k) => ALLOWED_UPDATES.includes(k))
+
+        if (!isUpdateAllowed) {
+            throw new Error("Update not allowed")
+        }
+        if (data?.skills.length > 10) {
+            throw new Error("Skills cannot me more than tenf")
+        }
+
+        // here we have to notice that when we are not using runValidators parameter and if we update the schema for a particular document then it will not reflect as it will only reflect when we will add a new document, but now as we have enabled the parameter then update will run properly
+        const user = await User.findByIdAndUpdate({ _id: userId }, data, { returnDocument: "after", runValidators: true, })
         res.send("User updated successfully")
 
     } catch (err) {
-        res.status(400).send("Something went wrong")
+        res.status(400).send("UPDATE FAILED: " + err.message)
 
     }
 

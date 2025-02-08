@@ -1,7 +1,7 @@
 const { mongoose } = require("mongoose")
 
 const connectDB = async () => {
-    await mongoose.connect("mongodb://localhost:27017/devTinder") // this has connected to mongodb cluster
+    await mongoose.connect("mongodb://localhost:27017/devTinder") // this has connected to mongodb cluster locally
 }
 
 module.exports = connectDB
