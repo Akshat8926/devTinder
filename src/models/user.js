@@ -1,15 +1,18 @@
 const mongoose = require("mongoose")
 const validator = require("validator");
 
-
 // Here we are doing Object Data Modelling as Mongoose is an ODM(Object Data Modelling library for MongoDB)
-
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: true,
         minLength: 4,
         maxLength: 100,
+        validate(value) {
+            if (validator.isEmpty(value.trim())) {
+                throw new Error("First Name cannot be empty")
+            }
+        }
     },
     lastName: {
         type: String
