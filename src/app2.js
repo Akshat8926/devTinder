@@ -3,9 +3,15 @@ const connectDB = require("./config/database")
 const { validateSignUpData } = require("./utils/validation")
 const User = require("./models/user")
 const bcrypt = require("bcrypt")
+const cookieParser = require("cookie-parser")
+const jwt = require("jsonwebtoken")
+const { userAuthJWT } = require("./middlewares/auth.js")
 
 const app2 = express()
 app2.use(express.json())
+app2.use(cookieParser())
+
+
 // Add data to the database
 app2.post("/signup", async (req, res) => {
     console.log(req.body)
@@ -54,7 +60,7 @@ app2.post("/signup", async (req, res) => {
 
 
 })
-
+// This is the login api it is used to authenticate the user
 app2.post("/login", async (req, res) => {
     try {
         const { emailId, password } = req.body
@@ -62,12 +68,19 @@ app2.post("/login", async (req, res) => {
         const user = await User.findOne({ emailId: emailId })
 
         if (!user) {
-            throw new Error("Email ID is nit present in the DataBase")
+            throw new Error("Email ID is not present in the DataBase")
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password)
 
         if (isPasswordValid) {
+
+            // const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$790", { expiresIn: "1d" })
+
+            const token = await user.getJWT()
+            console.log(token)
+
+            res.cookie("token", token, { expires: new Date(Date.now() + 8 * 3600000) })
             res.send("Login Successfull")
         } else {
             throw new Error("Passwoord is not correct")
@@ -78,6 +91,56 @@ app2.post("/login", async (req, res) => {
         res.status(400).send("ERROR: " + err.message)
     }
 })
+app2.get("/profile", userAuthJWT, async (req, res) => {
+    try {
+        // const cookies = req.cookies
+
+        // const { token } = cookies
+
+        // if (!token) {
+        //     throw new Error("Invalid Token")
+        // }
+
+        // // Validate the user
+        // const decodedMessage = await jwt.verify(token, "DEV@Tinder$790")
+
+        // const { _id } = decodedMessage
+        // console.log(decodedMessage)
+        // console.log("LoggedIn user is: " + _id)
+
+        // const user = await User.findById(_id)
+
+        const user = req.user
+
+        if (!user) {
+            throw new Error("User does not exists")
+        }
+        // console.log(cookies)
+        res.send(user)
+    }
+    catch (err) {
+        res.status(400).send("ERROR: " + err.message)
+    }
+})
+
+app2.post("/sendingConnectionRequest", userAuthJWT, (req, res) => {
+
+    const user = req.user
+    console.log("Sending the Connection request")
+
+    // res.send(" Connection request has been sent")
+    res.send(`${user.firstName} has send the connection request`)
+})
+
+
+
+
+
+
+
+
+
+
 // Get a single user
 app2.get("/user", async (req, res) => {
     const userEmail = req.body.emailId
@@ -152,6 +215,8 @@ app2.patch("/user/:userId", async (req, res) => {
         res.status(400).send("UPDATE FAILED: " + err.message)
     }
 })
+
+
 connectDB().then(() => {
     console.log("Databaase connection establised");
     app2.listen(7777, () => {

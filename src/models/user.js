@@ -1,5 +1,7 @@
 const mongoose = require("mongoose")
 const validator = require("validator");
+const jwt = require("jsonwebtoken")
+
 
 // Here we are doing Object Data Modelling as Mongoose is an ODM(Object Data Modelling library for MongoDB)
 const userSchema = new mongoose.Schema({
@@ -76,6 +78,15 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 
+userSchema.methods.getJWT = async function () {
+
+    const user = this;
+    const token = await jwt.sign({ _id: this._id }, "DEV@Tinder$790", { expiresIn: "1d" })
+
+    return token;
+}
+
 const userModel = mongoose.model("User", userSchema)
 
 module.exports = userModel
+
